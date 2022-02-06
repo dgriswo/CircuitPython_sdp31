@@ -15,19 +15,18 @@ Implementation Notes
 
 **Hardware:**
 
-.. todo:: Add links to any specific hardware product page(s), or category page(s).
-  Use unordered list & hyperlink rST inline format: "* `Link Text <url>`_"
+* 'Sparkfun SparkX Differential Pressure Sensor - SDP31 (Qwiic):
+    <https://www.sparkfun.com/products/17874>'
+
+Creative Commons images are CC BY 2.0
+SparkX Differential Pressure Sensor - SDP31 (Qwiic)
 
 **Software and Dependencies:**
 
 * Adafruit CircuitPython firmware for the supported boards:
   https://github.com/adafruit/circuitpython/releases
 
-.. todo:: Uncomment or remove the Bus Device and/or the Register library dependencies
-  based on the library's use of either.
-
 # * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
-# * Adafruit's Register library: https://github.com/adafruit/Adafruit_CircuitPython_Register
 """
 
 import time
@@ -59,22 +58,29 @@ class SDP31:
     :param int address: The I2C address of the device. Defaults to :const: '0x21'
 
     **Quickstart: Importing and using the SDP31 pressure sensor**
+
       Here is one way of importing the `SDP31` class so you
       can use it with the name ``sdp31``.
+
       First you will need to import the libraries to use the sensor
       .. code-block:: python
-          import busio
-          import board
-          import sdp31
+
+            import board
+            import busio
+            import sdp31
+
       Once this is done you can define your `busio.I2C` object and define your sensor object
       .. code-block:: python
-          i2c = busio.I2C(board.SCL, board.SDA, frequency=100000)
-          sdp31 = sdp31.SDP31(i2c)
+
+            i2c = busio.I2C(board.SCL, board.SDA, frequency=100000)
+            sdp31 = sdp31.SDP31(i2c)
+
       Now you have access to the differential pressure using the
       :attr:`differential_pressure` attribute and the temperature using the :attr:`temperature`
       .. code-block:: python
-          diff_pressure = sdp31.differential_pressure
-          temperature = sdp31.temperature
+
+            diff_pressure = sdp31.differential_pressure
+            temperature = sdp31.temperature
     """
 
     def __init__(self, i2c, address=_SDP31_I2CADDR_DEFAULT):
@@ -98,7 +104,8 @@ class SDP31:
             raise RuntimeError("SDP not detected.")
 
     def start_continuous_measurement(self, average=False):
-        """In continuous mode the sensor is measuring at the highest speed
+        """
+        In continuous mode the sensor is measuring at the highest speed
         and writes the measurement values to the I2C results buffer, where
         the I2C master can read out the value when it requires.
 
@@ -127,9 +134,11 @@ class SDP31:
         time.sleep(0.02)
 
     def read_measurement(self, sensor):
-        """This command is called when continuous measurement
+        """
+        This command is called when continuous measurement
         is running and a temperature or pressure reading is
-        requested."""
+        requested.
+        """
         if sensor == "pressure":
             result = self._i2c_read_words(1)
 
@@ -139,20 +148,24 @@ class SDP31:
         return result
 
     def stop_continuous_measurement(self):
-        """This command stops the continuous measurement and puts the sensor
+        """
+        This command stops the continuous measurement and puts the sensor
         in idle mode. It powers off the heater and makes the sensor receptive
         for another command after 500us.  The Stop command is also required
-        when switching between different continuous measurement commands."""
+        when switching between different continuous measurement commands.
+        """
         with self._device:
             self._device.write(bytes(_SDP31_STOP_CONTINUOUS_MEASURE))
         time.sleep(0.005)
         self._continuous_measurement = False
 
     def triggered_measurement(self, sensor):
-        """During a triggered measurement the sensor measures both differential
+        """
+        During a triggered measurement the sensor measures both differential
         pressure and temperature.  The measurement starts directly after the
         command has been sent. The command needs to be repeated with every
-        measurement."""
+        measurement.
+        """
         if sensor == "pressure":
             result = self._i2c_read_words_from_cmd(
                 _SDP31_TRIGGER_DIFF_PRESSURE_STRETCH, 0, 1
@@ -167,12 +180,14 @@ class SDP31:
         return result
 
     def soft_reset(self, i2c):
-        """This sequence resets the sensor with a separate reset block,
+        """
+        This sequence resets the sensor with a separate reset block,
         which is as much as possible detached from the rest of the
         system on chip.
         Note that the I2C address is 0x00, which is the general call
         address, and that the command is 8 bit. The reset is
-        implemented according to the I2C specification."""
+        implemented according to the I2C specification.
+        """
         while not i2c.try_lock():
             pass
         i2c.writeto(0x0, bytes([0x0006]))
@@ -180,8 +195,10 @@ class SDP31:
         self._continuous_measurement = False
 
     def enter_sleep(self):
-        """Puts the sensor into sleep mode.  If continuous
-        measurement is enabled, it is stopped."""
+        """
+        Puts the sensor into sleep mode.  If continuous
+        measurement is enabled, it is stopped.
+        """
         if self._continuous_measurement is True:
             self.stop_continuous_measurement()
         with self._device:
@@ -278,8 +295,10 @@ class SDP31:
 
     @property
     def differential_pressure(self):
-        """Reads the differential pressure from the sensor.
-        Caution: This sensor's accuracy is +/- 2 C"""
+        """
+        Reads the differential pressure from the sensor.
+        Caution: This sensor's accuracy is +/- 2 C.
+        """
         if self._continuous_measurement is True:
             return (
                 int.from_bytes(self.read_measurement("pressure"), "big")
