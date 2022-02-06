@@ -83,6 +83,7 @@ class SDP31:
         self._pressure = None
         self._temperature = None
         self._mode = None
+        self._continuous_measurement = False
         self.soft_reset(i2c)
         time.sleep(0.25)
 
@@ -124,13 +125,17 @@ class SDP31:
         self._mode = mode
         self._continuous_measurement = True
 
-    def read_measurement(self, type):
-        if type == "pressure":
-            return self._i2c_read_words(1)
+    def read_measurement(self, sensor):
+        """This command is called when continuous measurement
+        is running and a temperature or pressure reading is
+        requested."""
+        if sensor == "pressure":
+            result = self._i2c_read_words(1)
 
-        if type == "temperature":
+        if sensor == "temperature":
             result = self._i2c_read_words(2)
-            return result[2:4]
+            result = result[2:4]
+        return result
 
     def stop_continuous_measurement(self):
         """This command stops the continuous measurement and puts the sensor
@@ -142,17 +147,17 @@ class SDP31:
         time.sleep(0.005)
         self._continuous_measurement = False
 
-    def triggered_measurement(self, type):
+    def triggered_measurement(self, sensor):
         """During a triggered measurement the sensor measures both differential
         pressure and temperature.  The measurement starts directly after the
         command has been sent. The command needs to be repeated with every
         measurement."""
-        if type == "pressure":
+        if sensor == "pressure":
             result = self._i2c_read_words_from_cmd(
                 _SDP31_TRIGGER_DIFF_PRESSURE_STRETCH, 0, 1
             )
 
-        if type == "temperature":
+        if sensor == "temperature":
             result = self._i2c_read_words_from_cmd(
                 _SDP31_TRIGGER_DIFF_PRESSURE_STRETCH, 0, 2
             )
@@ -161,6 +166,12 @@ class SDP31:
         return result
 
     def soft_reset(self, i2c):
+        """This sequence resets the sensor with a separate reset block,
+        which is as much as possible detached from the rest of the
+        system on chip.
+        Note that the I2C address is 0x00, which is the general call
+        address, and that the command is 8 bit. The reset is
+        implemented according to the I2C specification."""
         while not i2c.try_lock():
             pass
         i2c.writeto(0x0, bytes([0x0006]))
@@ -168,12 +179,21 @@ class SDP31:
         self._continuous_measurement = False
 
     def enter_sleep(self):
+        """Puts the sensor into sleep mode.  If continuous
+        measurement is enabled, it is stopped."""
         if self._continuous_measurement is True:
             self.stop_continuous_measurement()
         with self._device:
             self._device.write(bytes(_SDP31_ENTER_SLEEP))
 
+    def exit_sleep(self):
+        """Wakes the sensor from sleep."""
+        with self._device:
+            self._device.write(bytes([0x00]))
+        time.sleep(0.02)
+
     def read_identifiers(self):
+        """Returns the product ID for the sensor."""
         with self._device:
             self._device.write(bytes(_SDP31_READ_PRODUCT_NUMBER))
             self._device.write(bytes(_SDP31_READ_SERIAL_NUMBER))
@@ -244,6 +264,7 @@ class SDP31:
 
     @property
     def temperature(self):
+        """Reads the temperature from the sensor."""
         if self._continuous_measurement is True:
             return (
                 int.from_bytes(self.read_measurement("temperature"), "big")
@@ -256,6 +277,8 @@ class SDP31:
 
     @property
     def differential_pressure(self):
+        """Reads the differential pressure from the sensor.
+        Caution: This sensor's accuracy is +/- 2 C"""
         if self._continuous_measurement is True:
             return (
                 int.from_bytes(self.read_measurement("pressure"), "big")
