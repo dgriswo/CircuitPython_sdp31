@@ -1,7 +1,9 @@
 Introduction
 ============
 
-
+.. image:: https://readthedocs.org/projects/circuitpython-sdp31/badge/?version=latest
+    :target: https://circuitpython-sdp31.readthedocs.io/
+    :alt: Documentation Status
 
 .. image:: https://img.shields.io/discord/327254708534116352.svg
     :target: https://adafru.it/discord
@@ -26,7 +28,6 @@ This driver depends on:
 
 * `Adafruit CircuitPython <https://github.com/adafruit/circuitpython>`_
 * `Bus Device <https://github.com/adafruit/Adafruit_CircuitPython_BusDevice>`_
-* `Register <https://github.com/adafruit/Adafruit_CircuitPython_Register>`_
 
 Please ensure all dependencies are available on the CircuitPython filesystem.
 This is easily achieved by downloading
@@ -60,8 +61,15 @@ Or the following command to update an existing version:
 Usage Example
 =============
 
-.. todo:: Add a quick, simple example. It and other examples should live in the
-examples folder and be included in docs/examples.rst.
+.. code-block:: python3
+
+    import board
+    import sdp31
+
+    sdp31 = sdp31.SDP31(board.I2C())
+
+    print(f"Differential Pressure: {sdp31.differential_pressure}")
+    print(f"Temperature: {sdp31.temperature}")
 
 Contributing
 ============
