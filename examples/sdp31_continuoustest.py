@@ -2,9 +2,10 @@
 #
 # SPDX-License-Identifier: MIT
 
+import time
 import board
 import sdp31
-import time
+
 
 sdp31 = sdp31(board.I2C())
 
@@ -12,7 +13,7 @@ sdp31.start_continuous_measurement(average=True)
 
 for i in range(5):
     print(
-        f"Differential Pressure: {sdp31.differential_pressure}\tTemperature: {sdp21.temperature}"
+        f"Differential Pressure: {sdp31.differential_pressure}\tTemperature: {sdp31.temperature}"
     )
     time.sleep(1)
 
