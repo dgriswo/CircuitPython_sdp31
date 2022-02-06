@@ -7,7 +7,7 @@ import board
 import sdp31
 
 
-sdp31 = sdp31(board.I2C())
+sdp31 = sdp31.SDP31(board.I2C())
 
 sdp31.start_continuous_measurement(average=True)
 

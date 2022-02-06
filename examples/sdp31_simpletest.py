@@ -5,7 +5,7 @@
 import board
 import sdp31
 
-sdp31 = sdp31(board.I2C())
+sdp31 = sdp31.SDP31(board.I2C())
 
 print(f"Differential Pressure: {sdp31.differential_pressure}")
 print(f"Temperature: {sdp31.temperature}")
