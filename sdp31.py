@@ -124,6 +124,7 @@ class SDP31:
 
         self._mode = mode
         self._continuous_measurement = True
+        time.sleep(0.02)
 
     def read_measurement(self, sensor):
         """This command is called when continuous measurement
